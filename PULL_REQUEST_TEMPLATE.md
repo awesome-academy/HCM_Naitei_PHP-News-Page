@@ -3,7 +3,7 @@
 -->
 
 ## Related Tickets:
-- [#45156](https://edu-redmine.sun-asterisk.vn/issues/45156)
+- [#45156] (https://edu-redmine.sun-asterisk.vn/issues/45156)
 
 ## WHAT this PR does?
 - Install project based on Laravel 7
