@@ -8,7 +8,6 @@ use App\Http\Controllers\Users\HomeController;
 use App\Http\Controllers\Users\PostController as UserPostController;
 use App\Http\Controllers\Users\UserCategoryController;
 
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -30,14 +29,14 @@ Route::get('/show/{id}', 'Users\HomeController@show')->name('home.category');
 Route::get('/search', 'Users\HomeController@search')->name('home.search');
 
 Route::get('/category/show/{id}', 'Users\UserCategoryController@show')->name('userCategory.show');
-Route::get('/category/showCategory/{id}', 'Users\UserCategoryController@showCategory')->name('userCategory.showCategory');
+Route::get('/category/showCategory/{id}', 'Users\UserCategoryController@showCategory')
+    ->name('userCategory.showCategory');
 
 Route::get('/show/{id}', 'Users\UserPostController@show')->name('userPost.show');
 
 // ==================================== ADMIN ====================================
 $prefix_admin = 'admin';
-Route::prefix($prefix_admin)->middleware('is_admin')->group(function ()
-{
+Route::prefix($prefix_admin)->middleware('is_admin')->group(function () {
     Route::get("/", [
         "as" => 'admin.index',
         "uses" => 'Admin\AdminController@index',
