@@ -10,12 +10,14 @@ use App\Http\Requests\UserAddRequest;
 use App\Http\Requests\UserEditRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Admin\AdminController;
 
 class UserController extends Controller
 {
     private $controllerName = 'admin';
     protected $pathToView = 'admin.pages.';
     private $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
+    protected $limit;
     /**
      * Display a listing of the resource.
      *
@@ -23,6 +25,7 @@ class UserController extends Controller
      */
     public function __construct()
     {
+        $this->middleware('auth');
         // Var want to share
         view()->share('controllerName', $this->controllerName);
         view()->share('pathToUi', $this->pathToUi);
@@ -82,7 +85,9 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        return view($this->path_to_view . 'viewProfile', compact(['user']));
     }
 
     /**
@@ -114,7 +119,7 @@ class UserController extends Controller
             'password' => $password,
             'role_id' => $request->role_id,
         ]);
-    
+
         return redirect()->route('user.index');
     }
 

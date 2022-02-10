@@ -17,6 +17,7 @@ class PostController extends Controller
     protected $pathToView = 'admin.pages.';
     protected $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
     protected $imgPosts;
+    protected $limit;
     /**
      * Display a listing of the resource.
      *
@@ -24,6 +25,7 @@ class PostController extends Controller
      */
     public function __construct()
     {
+        $this->middleware('auth');
         // Var want to share
         view()->share('controller_name', $this->controller_name);
         view()->share('pathToUi', $this->pathToUi);

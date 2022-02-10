@@ -15,9 +15,11 @@ class CategoryController extends Controller
     private $controllerName = 'admin';
     protected $pathToView = 'admin.pages.';
     private $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
+    protected $limit;
 
     public function __construct()
     {
+        $this->middleware('auth');
         // Var want to share
         view()->share('controllerName', $this->controllerName);
         view()->share('pathToUi', $this->pathToUi);
@@ -69,7 +71,6 @@ class CategoryController extends Controller
 
     public function create()
     {
-
         return view($this->pathToView . 'addCategory');
     }
 
@@ -121,7 +122,7 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
         $category->update($request->all());
-       
+
         return redirect()->route('category.index');
     }
 
