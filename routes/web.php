@@ -8,6 +8,7 @@ use App\Http\Controllers\Users\HomeController;
 use App\Http\Controllers\Users\PostController as UserPostController;
 use App\Http\Controllers\Users\UserCategoryController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes

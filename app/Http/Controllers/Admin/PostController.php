@@ -14,8 +14,9 @@ use App\Http\Controllers\Controller;
 class PostController extends Controller
 {
     protected $controller_name = 'admin';
-    protected $path_to_view = 'admin.pages.';
-    protected $path_to_ui = 'ui_resources/startbootstrap-sb-admin-2/';
+    protected $pathToView = 'admin.pages.';
+    protected $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
+    protected $imgPosts;
     protected $limit;
     /**
      * Display a listing of the resource.
@@ -27,16 +28,26 @@ class PostController extends Controller
         $this->middleware('auth');
         // Var want to share
         view()->share('controller_name', $this->controller_name);
-        view()->share('path_to_ui', $this->path_to_ui);
+        view()->share('pathToUi', $this->pathToUi);
+        $this->limit = config('app.limit');
+        $this->imgPosts = Image::where('imageable_type', Post::class)->get();
     }
     public function index()
     {
         $posts = Post::first();
-        $this->limit = config('app.limit');
-        $posts = $posts->load('images')->paginate($this->limit);
-        $searchKeyWord = "";
+        $posts = $posts->load('images')
+            ->orderBy('created_at', 'DESC')
+            ->paginate($this->limit);
 
-        return view($this->path_to_view . 'listPost', compact(['posts', 'searchKeyWord']));
+        return view(
+            $this->pathToView . 'listPost',
+            array_merge(
+                compact('posts'),
+                [
+                    'searchKeyWord' => $this->searchKeyWord,
+                ]
+            )
+        );
     }
 
     /**
@@ -46,32 +57,50 @@ class PostController extends Controller
      */
     public function create()
     {
-        $categories_sub = DB::table('categories')->select('*')->where('parent_id', '>', '1')->get();
+        $categoriesSub = DB::table('categories')
+            ->select('*')
+            ->where('parent_id', '>', '0')
+            ->get();
 
-        return view($this->path_to_view . 'addPost', compact(['categories_sub']));
+        return view(
+            $this->pathToView . 'addPost',
+            compact(
+                [
+                    'categoriesSub',
+                ]
+            )
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function store(AddPostRequest $request, Post $post)
+    public function store(AddPostRequest $request)
     {
-        //find category_id from entered category_name
-        $category = Category::findOrFail($request->category_id);
         //new post
         $post = new Post;
-        $post = array('title' => $request->title, 'body' => $request->body, 'category_id' => $category->id);
+        $post = array(
+            'title' => $request->title,
+            'body' => $request->body,
+            'category_id' => $request->category_id,
+        );
         $post = Post::create($post);
         //new image
-        $image_post = new Image;
+        $imagePost = new Image;
         //save image
-        $image_post->link = $request->images->getClientOriginalName();
-        DB::transaction(function () use ($post, $image_post) {
-            Post::find($post->id)->images()->save($image_post);
-        });
+        if (!empty($request->images)) {
+            $imageName = time() . '.' . $request->images->extension();
+            $imagePost->link = $imageName;
+            $request->images->storeAs('public/images', $imageName);
+            DB::transaction(function () use ($post, $imagePost) {
+                Post::find($post->id)
+                    ->images()
+                    ->save($imagePost);
+            });
+        }
 
         return redirect()->route('post.index');
     }
@@ -79,51 +108,72 @@ class PostController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Post  $post
+     * @param \App\Models\Post $post
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, $id)
     {
-        $image_post = Post::findOrFail($id)->load('images');
+        $imagePost = Post::findOrFail($id)->load('images');
 
-        return view($this->path_to_view . 'detailPostAdmin', compact(['image_post']));
+        return view(
+            $this->pathToView . 'detailPostAdmin',
+            array_merge(
+                compact('imagePost'),
+                [
+                    'imgPosts' => $this->imgPosts,
+                ]
+            )
+        );
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Post  $post
+     * @param \App\Models\Post $post
      * @return \Illuminate\Http\Response
      */
     public function edit(Request $request, $id)
     {
         $post = Post::findOrFail($id);
+        $categories = DB::table('categories')
+            ->select('*')
+            ->where('parent_id', '>', '0')
+            ->get();
 
-        return view('admin.edit', compact(['post']));
+        return view(
+            $this->pathToView . 'editPost',
+            compact(
+                [
+                    'post', 'categories',
+                ],
+            )
+        );
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Post  $post
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Post $post
      * @return \Illuminate\Http\Response
      */
     public function update(EditPostRequest $request, $id)
     {
-        //find category_id from entered category_name
-        $category_id = Category::where('name', 'like', $request->category_name)->first();
-        //update post
-        Post::where('id', $id)->update(['title' => $request->title,
-        'body' => $request->body, 'category_id' => $category_id->id]);
-        
+        Post::where('id', $id)->update(
+            [
+                'title' => $request->title,
+                'body' => $request->body,
+                'category_id' => $request->category_name,
+            ]
+        );
+
         return redirect()->route('post.index');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Post  $post
+     * @param \App\Models\Post $post
      * @return \Illuminate\Http\Response
      */
     public function destroy(Request $request, $id)
@@ -137,7 +187,7 @@ class PostController extends Controller
     public function deleteAll(Request $request)
     {
         $ids = $request->get('ids');
-        $dbs = DB::delete('delete from posts where id in ('.implode(',', $ids).')');
+        $dbs = DB::delete('delete from posts where id in (' . implode(',', $ids) . ')');
 
         return redirect()->route('post.index');
     }
@@ -145,13 +195,11 @@ class PostController extends Controller
     public function search(Request $request)
     {
         $searchKeyWord = $request->input('search');
-        $this->limit = config('app.limit');
-        $posts = Post::query()
-            ->where('title', 'LIKE', "%{$searchKeyWord}%")
+        $posts = Post::where('title', 'LIKE', "%{$searchKeyWord}%")
             ->orWhere('body', 'LIKE', "%{$searchKeyWord}%")
             ->orderBy('id', 'DESC')
             ->paginate($this->limit);
 
-        return view($this->path_to_view . 'listPost', compact('posts', 'searchKeyWord'));
+        return view($this->pathToView . 'listPost', compact('posts', 'searchKeyWord'));
     }
 }

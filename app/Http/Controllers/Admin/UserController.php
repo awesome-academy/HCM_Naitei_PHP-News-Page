@@ -14,9 +14,9 @@ use App\Http\Controllers\Admin\AdminController;
 
 class UserController extends Controller
 {
-    private $controller_name = 'admin';
-    protected $path_to_view = 'admin.pages.';
-    private $path_to_ui = 'ui_resources/startbootstrap-sb-admin-2/';
+    private $controllerName = 'admin';
+    protected $pathToView = 'admin.pages.';
+    private $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
     protected $limit;
     /**
      * Display a listing of the resource.
@@ -27,17 +27,24 @@ class UserController extends Controller
     {
         $this->middleware('auth');
         // Var want to share
-        view()->share('controller_name', $this->controller_name);
-        view()->share('path_to_ui', $this->path_to_ui);
+        view()->share('controllerName', $this->controllerName);
+        view()->share('pathToUi', $this->pathToUi);
+        $this->limit = config('app.limit');
     }
     public function index()
     {
         $users = User::first();
-        $this->limit = config('app.limit');
         $users = $users->load('role')->paginate($this->limit);
-        $searchKeyWord = "";
 
-        return view($this->path_to_view . 'listUser', compact(['users', 'searchKeyWord']));
+        return view(
+            $this->pathToView . 'listUser',
+            array_merge(
+                compact('users'),
+                [
+                    'searchKeyWord' => $this->searchKeyWord,
+                ]
+            )
+        );
     }
 
     /**
@@ -47,7 +54,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view($this->path_to_view . 'addUser');
+        return view($this->pathToView . 'addUser');
     }
 
     /**
@@ -59,11 +66,13 @@ class UserController extends Controller
     public function store(UserAddRequest $request)
     {
         $password = Hash::make($request->password);
-        $user = User::create([
+        $user = User::create(
+            [
             'name' => $request->name,
             'password' => $password,
             'role_id' => $request->role_id,
-        ]);
+            ]
+        );
         
         return redirect()->route('user.index');
     }
@@ -91,7 +100,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        return view($this->path_to_view . 'editUser', compact(['user']));
+        return view($this->pathToView . 'editUser', compact(['user']));
     }
 
     /**
@@ -130,13 +139,12 @@ class UserController extends Controller
     
     public function search(Request $request)
     {
-        $this->limit = config('app.limit');
         $searchKeyWord = $request->input('search');
         $users = User::where('name', 'LIKE', "%{$searchKeyWord}%")
             ->orWhere('email', 'LIKE', "%{$searchKeyWord}%")
             ->orderBy('id', 'DESC')
             ->paginate($this->limit);
-
-        return view($this->path_to_view . 'listUser', compact('users', 'searchKeyWord'));
+            
+        return view($this->pathToView . 'listUser', compact('users', 'searchKeyWord'));
     }
 }

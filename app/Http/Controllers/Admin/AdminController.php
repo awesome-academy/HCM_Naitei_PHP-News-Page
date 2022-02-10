@@ -7,16 +7,16 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    protected $controller_name = 'admin';
-    protected $path_to_view = 'admin.pages.';
-    protected $path_to_ui = 'ui_resources/startbootstrap-sb-admin-2/';
+    protected $controllerName = 'admin';
+    protected $pathToView = 'admin.pages.';
+    protected $pathToUi = 'ui_resources/startbootstrap-sb-admin-2/';
 
     public function __construct()
     {
         $this->middleware('auth');
         // Var want to share
-        view()->share('controller_name', $this->controller_name);
-        view()->share('path_to_ui', $this->path_to_ui);
+        view()->share('controllerName', $this->controllerName);
+        view()->share('pathToUi', $this->pathToUi);
     }
 
     public function index()
