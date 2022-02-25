@@ -2,7 +2,7 @@
 
 @section('pageTitle', 'Dashboard')
 @section('content')
-
+<link rel="stylesheet" href="\resouce\meranda-master\css\chart.css">
 <div class="container-fluid">
 
     <!-- Page Heading -->
@@ -33,15 +33,7 @@
                 datasets: [{
                     label: 'Count posts',
                     data: datas,
-                    backgroundColor: [
-                        'Red',
-                        'MediumTurquoise',
-                        'Coral',
-                        'Yellow',
-                        'Chartreuse',
-                        'DeepSkyBlue',
-                        'LightPink',
-                    ]
+                    backgroundColor: Array(7).fill('LightPink')
                 }]
             },
             options: {

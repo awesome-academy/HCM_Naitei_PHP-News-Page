@@ -1,11 +1,10 @@
 <div class="md-contents">
+    <h3>Dear: Admin</h3>
     <h1>
         The total number of posts today: {{ $count }} posts
     </h1>
-    @foreach ($posts as $post)
-    <h3> {{ $post->title }} </h3>
-    <div> {{ \Illuminate\Support\Str::limit($post->body, 250, $end='...') }} </div>
-    <h5> Category: {{ $post->category->name }} </h5>
-    <h5> By: {{ $post->user->name }} </h5>
-    @endforeach
+    <h3> For more infomation </h3>
+    <a href="{{ route('sche.index') }}" class="btn btn-success btn-sm mb-2">Click here</a>
+    <br>
+    <h3>Thank you</h3>
 </div>
